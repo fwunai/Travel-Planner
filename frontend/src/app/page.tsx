@@ -83,6 +83,8 @@ export default function PlannerPage() {
     load();
     setTags(readTagLibrary());
     return () => selectPlace(null);
+    // The initial workspace bootstrap intentionally runs once per mounted page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectPlace]);
 
   async function updateTrip(fields: Partial<Trip>) {
