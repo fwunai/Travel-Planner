@@ -15,8 +15,42 @@ function loadAmap() {
 }
 
 export function MapCanvas({ places }: { places: Place[] }) {
-  const element = useRef<HTMLDivElement>(null); const map = useRef<any>(null); const markers = useRef<any[]>([]); const [error, setError] = useState<string | null>(null); const selectPlace = useMapEditorStore((state) => state.selectPlace);
-  useEffect(() => { if (!element.current) return; loadAmap().then(() => { map.current = new window.AMap.Map(element.current, { zoom: 11, center: [120.1551, 30.2741] }); }).catch((reason) => setError(reason.message)); return () => map.current?.destroy(); }, []);
-  useEffect(() => { if (!map.current || !window.AMap) return; markers.current.forEach((marker) => marker.remove()); markers.current = places.map((place) => { const marker = new window.AMap.Marker({ position: [place.longitude, place.latitude], title: place.name }); marker.on("click", () => selectPlace(place.id)); marker.setMap(map.current); return marker; }); if (places.length) map.current.setFitView(markers.current); }, [places, selectPlace]);
+  const element = useRef<HTMLDivElement>(null);
+  const map = useRef<any>(null);
+  const markers = useRef<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const selectPlace = useMapEditorStore((state) => state.selectPlace);
+
+  useEffect(() => {
+    const container = element.current;
+    if (!container) return;
+    loadAmap()
+      .then(() => {
+        map.current = new window.AMap.Map(container, { zoom: 11, center: [120.1551, 30.2741] });
+        setReady(true);
+      })
+      .catch((reason) => setError(reason instanceof Error ? reason.message : "高德地图加载失败"));
+    return () => {
+      markers.current.forEach((marker) => marker.remove());
+      markers.current = [];
+      map.current?.destroy();
+      map.current = null;
+      setReady(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !map.current || !window.AMap) return;
+    markers.current.forEach((marker) => marker.remove());
+    markers.current = places.map((place) => {
+      const marker = new window.AMap.Marker({ position: [place.longitude, place.latitude], title: place.name });
+      marker.on("click", () => selectPlace(place.id));
+      marker.setMap(map.current);
+      return marker;
+    });
+    if (places.length) map.current.setFitView(markers.current);
+  }, [places, ready, selectPlace]);
+
   return <div className="map">{error ? <div className="map-error">{error}</div> : <div ref={element} className="map-canvas" />}</div>;
 }
