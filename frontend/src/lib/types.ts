@@ -1,4 +1,4 @@
-export type User = { id: string; email: string; display_name: string | null };
-export type Trip = { id: string; name: string; destination_city: string; destination_adcode: string | null; start_date: string; end_date: string; travelers: number; daily_start_time: string; daily_end_time: string; notes: string | null; map_provider: string; coordinate_system: string; status: string };
+export type Trip = { id: string; name: string | null; destination_city: string | null; destination_adcode: string | null; start_date: string | null; end_date: string | null; travelers: number; daily_start_time: string; daily_end_time: string; notes: string | null; map_provider: string; coordinate_system: string; status: string };
 export type Place = { id: string; provider: string; provider_place_id: string | null; name: string; address: string | null; longitude: number; latitude: number; coordinate_system: string; category: string; rating: number | null; opening_hours: string | null; photo_url: string | null; description: string | null; priority: string; user_note: string | null };
 export type GeoPlace = Omit<Place, "id" | "provider" | "coordinate_system" | "provider_place_id" | "priority" | "user_note"> & { provider_place_id: string };
+export type Workspace = { trip: Trip; places: Place[] };
