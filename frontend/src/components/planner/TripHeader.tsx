@@ -16,7 +16,7 @@ export function TripHeader({ trip, saveState, onCreateTrip, onOpenSettings }: Tr
     <header className="trip-header">
       <div className="trip-header__identity">
         <span className="trip-header__brand">Traveller</span>
-        <div>
+        <div className="trip-header__trip">
           <p className="trip-header__eyebrow">当前行程</p>
           <h1>{trip.name || "未命名旅行"}</h1>
         </div>

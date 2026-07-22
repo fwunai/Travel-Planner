@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, time
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, Time
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -27,5 +27,7 @@ class Place(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     priority: Mapped[str] = mapped_column(String(20), default="optional")
     user_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    visit_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)

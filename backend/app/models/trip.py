@@ -13,11 +13,11 @@ class Trip(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     owner_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    name: Mapped[str] = mapped_column(String(120))
-    destination_city: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    destination_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     destination_adcode: Mapped[str | None] = mapped_column(String(12), nullable=True)
-    start_date: Mapped[date] = mapped_column(Date)
-    end_date: Mapped[date] = mapped_column(Date)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     travelers: Mapped[int] = mapped_column(Integer, default=1)
     daily_start_time: Mapped[time] = mapped_column(Time, default=time(9, 0))
     daily_end_time: Mapped[time] = mapped_column(Time, default=time(21, 0))
@@ -27,3 +27,4 @@ class Trip(Base):
     status: Mapped[str] = mapped_column(String(20), default="planning")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+

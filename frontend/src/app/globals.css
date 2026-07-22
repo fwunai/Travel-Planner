@@ -24,7 +24,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .planner-shell { min-height: 100vh; background: var(--paper-white); }
 .trip-header { display: grid; grid-template-columns: minmax(260px, 1fr) auto minmax(280px, 1fr); min-height: 92px; align-items: center; gap: 28px; padding: 14px 22px; color: #fff; background: var(--road-ink); border-bottom: 4px solid var(--station-green); }
 .trip-header__identity { display: flex; min-width: 0; align-items: center; gap: 14px; }
-.trip-header__brand { display: grid; flex: 0 0 46px; width: 46px; height: 46px; place-items: center; color: var(--road-ink); background: var(--signal-orange); font: 800 25px/1 var(--display); }
+.trip-header__brand { display: grid; flex: 0 0 auto; min-height: 46px; padding: 0 12px; place-items: center; color: var(--road-ink); background: var(--signal-orange); font: 800 18px/1 var(--display); }
+.trip-header__trip { min-width: 0; flex: 1 1 auto; }
 .trip-header__eyebrow, .panel-heading p, .settings-drawer__header p { margin: 0 0 3px; color: #aebbb4; font: 700 10px/1.2 var(--utility); text-transform: uppercase; }
 .trip-header h1 { max-width: 100%; margin: 0; overflow: hidden; font: 700 25px/1.1 var(--display); text-overflow: ellipsis; white-space: nowrap; }
 .trip-header__facts { display: flex; margin: 0; gap: 22px; }
@@ -130,17 +131,21 @@ textarea { min-height: 68px; padding: 9px; resize: vertical; }
 .route-node[data-selected="true"] .route-node__rail span { background: var(--signal-orange); }
 .route-node article { min-width: 0; margin-bottom: 12px; padding: 10px; border: 1px solid #d2dbd6; border-radius: 6px; background: #fff; }
 .route-node[data-selected="true"] article { border-color: var(--signal-orange); box-shadow: 0 5px 16px rgba(23, 33, 27, .08); }
-.route-node__topline { display: flex; align-items: center; gap: 6px; color: var(--rail-gray); }
-.route-node__handle { width: 14px; }
 .route-node__time { display: inline-flex; align-items: center; gap: 4px; color: var(--road-ink); font: 700 11px/1 var(--utility); }
 .route-node__time svg { width: 12px; }
-.route-node__slot { margin-left: auto; font-size: 9px; }
-.route-node__select { display: grid; gap: 3px; width: 100%; padding: 9px 0 8px; text-align: left; border: 0; border-radius: 0; background: transparent; }
+.route-node__select { display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; align-items: center; gap: 8px; width: 100%; min-height: 38px; padding: 2px 0; text-align: left; border: 0; border-radius: 0; background: transparent; }
 .route-node__select strong, .route-node__select span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .route-node__select strong { font-size: 13px; }
-.route-node__select span { color: var(--rail-gray); font-size: 10px; }
+.route-node__chevron { width: 15px; color: var(--rail-gray); transition: transform .18s ease; }
+.route-node[data-expanded="true"] .route-node__chevron { transform: rotate(180deg); }
+.route-node__details { padding-top: 9px; border-top: 1px solid var(--line); }
+.route-node__address { overflow: hidden; margin: 0 0 9px; color: var(--rail-gray); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .route-node__controls { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.route-node select { min-height: 32px; padding: 5px 7px; font-size: 10px; }
+.route-node select, .route-node input[type="time"] { min-width: 0; min-height: 32px; padding: 5px 7px; font-size: 10px; }
+.route-node__move { display: flex; gap: 5px; margin-top: 7px; }
+.route-node__move button { display: grid; width: 32px; height: 32px; padding: 0; place-items: center; color: var(--road-ink); border: 1px solid #c8d2cc; background: #fff; }
+.route-node__move button:disabled { cursor: not-allowed; opacity: .35; }
+.route-node__move svg { width: 14px; }
 .route-node__note { margin-top: 7px; }
 .route-node__note textarea { min-height: 48px; font-size: 10px; }
 .route-node__delete { display: inline-flex; align-items: center; gap: 5px; margin-top: 7px; padding: 5px 0; color: var(--danger); border: 0; background: transparent; font-size: 10px; }
@@ -181,7 +186,7 @@ textarea { min-height: 68px; padding: 9px; resize: vertical; }
 
 @media (max-width: 980px) {
   .trip-header { grid-template-columns: minmax(0, 1fr) auto; min-height: 76px; padding: 10px 14px; }
-  .trip-header__brand { width: 40px; height: 40px; flex-basis: 40px; font-size: 22px; }
+  .trip-header__brand { min-height: 40px; padding: 0 9px; font-size: 15px; }
   .trip-header h1 { font-size: 21px; }
   .save-indicator { display: none; }
   .workspace-bar { grid-template-columns: minmax(0, 1fr) auto; min-height: 44px; padding: 5px 12px; }

@@ -239,6 +239,28 @@ export default function PlannerPage() {
     }
   }
 
+  async function movePlace(placeId: string, direction: "up" | "down") {
+    if (!trip) return;
+    const sourceIndex = places.findIndex((place) => place.id === placeId);
+    const targetIndex = direction === "up" ? sourceIndex - 1 : sourceIndex + 1;
+    if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= places.length) return;
+    const previous = places;
+    const reordered = [...places];
+    [reordered[sourceIndex], reordered[targetIndex]] = [reordered[targetIndex], reordered[sourceIndex]];
+    const normalized = reordered.map((place, index) => ({ ...place, sort_order: index }));
+    setPlaces(normalized);
+    try {
+      await Promise.all([
+        api<Place>(`/trips/${trip.id}/places/${normalized[sourceIndex].id}`, { method: "PATCH", body: JSON.stringify({ sort_order: sourceIndex }) }),
+        api<Place>(`/trips/${trip.id}/places/${normalized[targetIndex].id}`, { method: "PATCH", body: JSON.stringify({ sort_order: targetIndex }) }),
+      ]);
+      setWorkspaceMessage(null);
+    } catch (error) {
+      setPlaces(previous);
+      setWorkspaceMessage(error instanceof Error ? error.message : "地点排序失败");
+    }
+  }
+
   const categoryOptions = useMemo(
     () => Array.from(new Set([...legacyCategories, ...tags, ...places.map((place) => place.category)])),
     [places, tags],
@@ -282,7 +304,7 @@ export default function PlannerPage() {
         </section>
 
         <aside className="workspace-pane workspace-pane--route" data-mobile-active={mobileView === "route"}>
-          <RoutePanel trip={trip} places={places} selectedPlaceId={selectedPlaceId} categoryOptions={categoryOptions} onSelectPlace={selectPlace} onUpdatePlace={updatePlace} onRemovePlace={removePlace} />
+          <RoutePanel trip={trip} places={places} selectedPlaceId={selectedPlaceId} categoryOptions={categoryOptions} onSelectPlace={selectPlace} onUpdatePlace={updatePlace} onMovePlace={movePlace} onRemovePlace={removePlace} />
         </aside>
       </div>
 

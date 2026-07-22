@@ -50,19 +50,25 @@ export function MapCanvas({ places }: { places: Place[] }) {
     if (!ready || !map.current || !window.AMap) return;
     markers.current.forEach((marker) => marker.remove());
     markers.current = places.map((place, index) => {
-      const selected = place.id === selectedPlaceId;
       const marker = new window.AMap.Marker({
         position: [place.longitude, place.latitude],
         title: place.name,
         label: { content: `${index + 1}`, direction: "top" },
-        zIndex: selected ? 130 : 100,
+        zIndex: 100,
       });
       marker.on("click", () => selectPlace(place.id));
       marker.setMap(map.current);
       return marker;
     });
     if (places.length) map.current.setFitView(markers.current);
-  }, [places, ready, selectPlace, selectedPlaceId]);
+  }, [places, ready, selectPlace]);
+
+  useEffect(() => {
+    if (!ready) return;
+    markers.current.forEach((marker, index) => {
+      marker.setzIndex(places[index]?.id === selectedPlaceId ? 130 : 100);
+    });
+  }, [places, ready, selectedPlaceId]);
 
   return (
     <div className="map" role="region" aria-label="旅行地图" aria-busy={!ready && !error}>

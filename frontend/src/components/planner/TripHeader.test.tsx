@@ -22,6 +22,8 @@ describe("TripHeader", () => {
     expect(screen.getByText("2026.10.01 - 10.03")).toBeInTheDocument();
     expect(screen.getByText("2 人同行")).toBeInTheDocument();
     expect(screen.getByText("已自动保存到本地")).toHaveAttribute("data-tone", "saved");
+    expect(screen.getByText("Traveller")).toHaveClass("trip-header__brand");
+    expect(screen.getByRole("heading", { name: "杭州周末" }).parentElement).toHaveClass("trip-header__trip");
   });
 
   it("exposes labelled commands", async () => {

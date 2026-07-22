@@ -1,79 +1,94 @@
-# 第一阶段开发日志
+# Travel Planner 开发日志
 
-**日期：** 2026-07-18
-**范围：** 项目基础能力，采用前后端分离架构。
+**最近更新：** 2026-07-18
+**当前阶段：** 地图地点整理与多旅行计划工作区
 
-## 目标
+## 项目目标
 
-实现旅行规划 Web 应用的基础能力：预置账号登录、旅行项目管理、高德地点搜索代理、地点持久化以及地图大头针编辑界面。按天行程、路线、时间计算和导出能力不在本阶段范围内。
+Travel Planner 是一个以地图为核心的旅行计划编辑器。当前优先解决计划和地点的结构化整理；按天行程、路线、时间计算和导出属于后续阶段。
+
+## 当前架构
+
+- `frontend/`：Next.js、React、TypeScript、Zustand、原生 CSS。
+- `backend/`：FastAPI、SQLAlchemy、Pydantic、高德 Web Service 适配器。
+- 本地默认使用 SQLite，不需要 Docker、PostgreSQL/PostGIS 或 Redis。
+- 前端通过 `NEXT_PUBLIC_API_BASE_URL` 调用后端 `/api/v1`。
+- 地图使用高德 JS API，服务端 POI 搜索和地理编码使用高德 Web Service。
 
 ## 已完成内容
 
-### 工程与运行环境
+### 计划工作区
 
-- 建立独立的 `frontend/` 与 `backend/` 工程。
-- 前端采用 Next.js、TypeScript、React、TanStack Query、Zustand。
-- 后端采用 FastAPI、SQLAlchemy、Pydantic、JWT、Argon2 密码哈希。
-- 本地开发默认使用 SQLite 文件数据库，不需要 Docker、PostgreSQL/PostGIS 或 Redis。
-- 保留 `DATABASE_URL` 配置项，生产环境可切换到 PostgreSQL。
-- 新增根目录、前端和后端环境变量模板，并配置 `.gitignore`，避免提交真实密钥与本地数据。
+- 使用环境变量指定的预置用户作为本地工作区所有者。
+- 支持旅行计划列表、空白计划创建、详情查询、更新和删除。
+- 支持多个计划之间切换；切换时同步加载该计划的旅行信息和地点。
+- 删除计划时显式清理其地点，避免 SQLite 外键配置差异造成孤儿数据。
+- 保留 `/workspace` 兼容接口，但当前前端使用带 `trip_id` 的计划 API。
 
-### 用户与会话
+### 旅行信息
 
-- 使用环境变量配置预置账号；应用启动时自动、幂等地初始化该账号。
-- 实现登录、刷新令牌、退出登录和当前用户 API。
-- Access Token 使用短时 JWT；刷新令牌通过 `HttpOnly` Cookie 保存，服务端只保存刷新令牌哈希。
-- 未实现公开注册，符合第一阶段“仅预置登录”的决策。
-
-### 旅行项目
-
-- 实现旅行项目的数据模型：名称、目的城市、日期、出行人数、每日时间窗口、备注、地图服务商和坐标系。
-- 实现项目查询、创建、获取、更新和删除 API。
-- 校验日期范围、出行人数和每日开始/结束时间。
-- 所有项目查询均按当前用户过滤，避免跨用户访问。
+- 旅行名称、目的城市、起止日期、人数、每日开始/结束时间和备注。
+- 左侧计划选择器支持新建和删除。
+- 旅行信息默认收缩，展开后编辑并自动保存。
+- 顶部品牌标题固定为 `Traveller`，不跟随旅行名称改变。
 
 ### 地点与地图
 
-- 实现项目地点的新增、查询、修改和删除 API。
-- 支持手动地点，并记录名称、坐标、分类、优先级、备注和 `GCJ02` 坐标系。
-- 高德 POI 使用内部 UUID 作为系统地点 ID；高德 POI ID 仅作为 `provider_place_id` 保存。
-- 后端新增高德 Web Service 适配器，提供受认证保护的关键词 POI 搜索；服务端 Key 不暴露给前端。
-- 前端实现高德 JS API 动态加载、地图实例生命周期清理、地点标记渲染和自动视野适配。
-- 地点列表与地图标记共享选中状态，支持从列表删除地点。
+- 高德 POI 关键词搜索、候选选择和地点详情获取。
+- 搜索工具栏位于地图上方的独立行，不再覆盖地图左上角。
+- 搜索地区/城市是独立的前端状态，只影响 POI 搜索，不写入计划的目的城市。
+- 添加地点前必须选择具体 POI 和标签。
+- 支持预设标签：景点、美食、打卡点、住宿、交通、购物、其他。
+- 自定义标签保存在浏览器 `localStorage`，刷新后仍可继续使用。
+- 计划地点支持分类、必去/备选、备注、删除和地图标记联动。
+- 地图初始化完成后再渲染已有地点标记，避免异步加载时序导致首屏无标记。
 
-### 前端页面
+### 后端地图适配
 
-- 登录页：使用预置账号获取会话。
-- 旅行列表页：创建旅行项目、查看最近项目、进入编辑页面。
-- 旅行编辑页：左侧地点搜索与手动添加，中间地图，右侧已添加地点列表。
+- 统一封装高德地点搜索、地点详情和地址地理编码。
+- 服务端 Key 不发送到浏览器。
+- 对服务超时、HTTP 错误、无效 JSON、坐标异常和未配置 Key 返回明确错误。
+- 新增 POI 时优先保存前端选中的标签，否则回退到高德推断分类。
 
 ## 主要文件
 
-- `backend/app/core/config.py`
-- `backend/app/core/database.py`
+- `backend/app/api/v1/trips.py`
+- `backend/app/api/v1/places.py`
+- `backend/app/schemas/api.py`
 - `backend/tests/test_smoke.py`
-- `frontend/src/app/login/page.tsx`
-- `frontend/src/app/trips/page.tsx`
-- `frontend/src/app/trips/[tripId]/page.tsx`
+- `frontend/src/app/page.tsx`
+- `frontend/src/app/globals.css`
 - `frontend/src/components/map/MapCanvas.tsx`
+- `frontend/src/lib/tag-library.ts`
 
-## 配置与启动前提
+## 配置与启动
 
-- 后端：复制 `backend/.env.example` 为 `backend/.env`，设置 JWT 密钥、预置账号和 `AMAP_WEB_SERVICE_KEY`。
-- 前端：复制 `frontend/.env.example` 为 `frontend/.env.local`，设置 `NEXT_PUBLIC_AMAP_JS_KEY` 与安全密钥。
-- 高德 Web Service Key 仅允许出现在后端环境变量中；高德 JS Key 需要配置域名白名单。
-- SQLite 数据库会在后端启动时自动创建为 `backend/travel_planner.db`，无需启动额外服务。
-- 生产环境可通过 `DATABASE_URL` 连接 PostgreSQL；后续出现空间查询、多实例部署、共享缓存或异步任务时，再评估引入 PostGIS 和 Redis。
+1. 复制 `backend/.env.example` 为 `backend/.env`，配置 SQLite、预置用户和高德 Web Service Key。
+2. 在 `backend` 目录运行 `./.venv/Scripts/uvicorn.exe app.main:app --reload --port 8000`。
+3. 复制 `frontend/.env.example` 为 `frontend/.env.local`，配置高德 JS Key 和安全码。
+4. 在 `frontend` 目录运行 `npm run dev`，访问 `http://localhost:3000`。
 
-## 本轮运行与排障记录
+## API 范围
 
-- 将本地默认运行方案从 Docker/PostgreSQL/Redis 调整为 SQLite，删除 Docker Compose 和未使用的 Redis 依赖。
-- SQLite 测试数据库在 Windows 上的连接占用问题已通过测试结束时释放 SQLAlchemy 连接池解决。
-- 前端开发服务器因遗留进程占用 3000 端口时会自动改用其他端口；该端口必须加入后端 `CORS_ORIGINS`，例如 `http://localhost:3000,http://localhost:3002`。
-- 曾出现 Next.js 开发缓存导致客户端脚本和样式资源返回 404，使表单退化为普通 GET 提交；清理 `frontend/.next` 并停止遗留开发服务器后恢复正常。
-- 已发现创建旅行项目成功后调用 `event.currentTarget.reset()` 的前端缺陷：异步请求完成后 `currentTarget` 可能为 `null`，会显示 `Cannot read properties of null (reading 'reset')`。后端创建操作不受影响；该缺陷待修复。
+- `GET /api/v1/trips`：列出当前本地工作区的计划。
+- `POST /api/v1/trips`：创建空白计划。
+- `GET/PATCH/DELETE /api/v1/trips/{trip_id}`：查询、更新或删除计划。
+- `GET/POST /api/v1/trips/{trip_id}/places`：查询或新增地点。
+- `PATCH/DELETE /api/v1/trips/{trip_id}/places/{place_id}`：修改或删除地点。
+- `GET /api/v1/geo/places/search`：代理高德 POI 搜索。
+
+## 本轮排障记录
+
+- 将旧的单一 `/workspace` 前端流程扩展为显式 `trip_id` 的多计划流程。
+- 修复前端搜索请求竞态，旧关键词请求不能覆盖新结果。
+- 修复地图 API 异步加载完成后已有地点不渲染的问题。
+- 修复异步表单提交后访问 `event.currentTarget` 的潜在空引用问题，当前地点录入不再使用手动表单。
+- `npm run lint` 当前仍会进入 Next.js 的交互式 ESLint 配置；生产构建和后端测试可正常执行。
 
 ## 后续工作
 
-- 使用已配置的高德 Key 完成真实 POI 搜索和浏览器地图交互验收。
-- 第二阶段实现按天行程、拖拽排序、起终点和路线同步。
+- 按天行程和地点拖拽排序。
+- 起点、终点、交通方式和路线规划。
+- 停留时间、到达时间和时间冲突检查。
+- 行程预览、导出和分享。
+- 在稳定的行程编辑能力之上接入 Agent。
